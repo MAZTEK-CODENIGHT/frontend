@@ -4,26 +4,33 @@ import styles from './Home.style';
 
 import { Picker } from '@react-native-picker/picker';
 import MonthPicker from 'react-native-month-year-picker';
+import BillCard from '../../components/BillCard';
+
 import apiClient from '../../api/client';
 import moment from 'moment';
 import 'moment/locale/tr';
 
 const Home = () => {
-  const [selectedUser, setSelectedUser] = useState<any>();
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
-  const [invoice, setInvoice] = useState<any>(null); // fatura verisi
+  const [invoice, setInvoice] = useState<any>(null);
 
   useEffect(() => {
-    moment.locale('tr'); // Türkçe ay isimleri
+    moment.locale('tr');
   }, []);
 
   useEffect(() => {
     const fetchUsersData = async () => {
       try {
         const usersData = await apiClient.get('/users');
-        setUsers(usersData.data.data);
+        // Kullanıcı verileri geldikten sonra, liste boş değilse ilk kullanıcıyı otomatik seç
+        const fetchedUsers = usersData.data.data;
+        setUsers(fetchedUsers);
+        if (fetchedUsers.length > 0) {
+          setSelectedUser(fetchedUsers[0]);
+        }
       } catch (error) {
         console.log('ERROR', error);
       }
@@ -31,15 +38,13 @@ const Home = () => {
     fetchUsersData();
   }, []);
 
-  // Month Picker callback
   const onValueChange = (event: any, newDate?: Date) => {
-    setShowMonthPicker(Platform.OS === 'ios'); // iOS'ta picker ekranda kalır
+    setShowMonthPicker(Platform.OS === 'ios');
     if (newDate) {
       setSelectedDate(newDate);
     }
   };
 
-  // Fatura getirme fonksiyonu
   const fetchInvoice = async () => {
     if (!selectedUser) {
       Alert.alert('Uyarı', 'Lütfen bir kullanıcı seçin.');
@@ -47,34 +52,35 @@ const Home = () => {
     }
 
     try {
-      const period = moment(selectedDate).format('YYYY-MM'); // period formatı
-
+      const period = moment(selectedDate).format('YYYY-MM');
       const response = await apiClient.get(
-        `/bills/${selectedUser.user_id}?period=${period}`
+        `/bills/${selectedUser.user_id}?period=${period}`,
       );
-
-      setInvoice(response.data); // API response set
+      setInvoice(response.data.data);
       Alert.alert('Başarılı', 'Fatura getirildi.');
     } catch (error) {
       console.log('ERROR fetching invoice', error);
-      Alert.alert('Hata', 'Fatura getirilemedi.');
+      Alert.alert('Hata', 'Fatura bulunamadı.');
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.inputsContainer}>
-
         {/* Müşteri Seçimi */}
         <View style={styles.inputContainer}>
           <Text style={styles.pickerTitle}>Müşteri Seçimi</Text>
           <View style={styles.pickerWrapper}>
             <Picker
-              selectedValue={selectedUser}
-              onValueChange={itemValue => setSelectedUser(itemValue)}
+              selectedValue={selectedUser?.id}
+              onValueChange={(itemValue) => {
+                const user = users.find(u => u.id === itemValue);
+                setSelectedUser(user);
+              }}
             >
+              <Picker.Item label="Lütfen bir kullanıcı seçin..." value={null} color="#a9a9a9" />
               {users.map(user => (
-                <Picker.Item key={user.id} label={user.name} value={user} />
+                <Picker.Item key={user.id} label={user.name} value={user.id} />
               ))}
             </Picker>
           </View>
@@ -94,9 +100,7 @@ const Home = () => {
             style={styles.selectDateButton}
           >
             <Text style={styles.selectDateButtonText}>
-              {selectedDate
-                ? moment(selectedDate).format('MMMM YYYY')
-                : 'Seçim Yap'}
+              {moment(selectedDate).format('MMMM YYYY')}
             </Text>
           </TouchableOpacity>
 
@@ -105,7 +109,7 @@ const Home = () => {
               onChange={onValueChange}
               value={selectedDate}
               minimumDate={new Date(2020, 0)}
-              maximumDate={new Date(2030, 11)}
+              maximumDate={new Date()}
               locale="tr"
             />
           )}
@@ -121,6 +125,7 @@ const Home = () => {
           </TouchableOpacity>
         )}
 
+        {invoice && <BillCard data={invoice}/>}
       </View>
     </View>
   );
