@@ -1,12 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
-
-interface BillItem {
-    item_id: string;
-    category: string;
-    amount: number;
-    description: string;
-}
+import { BillItem } from '../../../api/services';
 
 interface CategoryBreakdownProps {
     items: BillItem[];
@@ -46,7 +40,12 @@ export const CategoryBreakdown: React.FC<CategoryBreakdownProps> = ({ items }) =
             vas: '#6366f1',
             one_off: '#6b7280',
             discount: '#059669',
-            tax: '#eab308'
+            tax: '#eab308',
+            monthly_fee: '#8b5cf6',
+            voice_overage: '#ef4444',
+            data_overage: '#f59e0b',
+            sms_overage: '#10b981',
+            plan: '#3b82f6'
         };
         return colors[category] || '#6b7280';
     };
@@ -61,7 +60,12 @@ export const CategoryBreakdown: React.FC<CategoryBreakdownProps> = ({ items }) =
             vas: 'VAS',
             one_off: 'Tek Seferlik',
             discount: 'İndirim',
-            tax: 'Vergi'
+            tax: 'Vergi',
+            monthly_fee: 'Aylık Ücret',
+            voice_overage: 'Ses Aşımı',
+            data_overage: 'Veri Aşımı',
+            sms_overage: 'SMS Aşımı',
+            plan: 'Plan'
         };
         return names[category] || category;
     };
@@ -109,9 +113,14 @@ export const CategoryBreakdown: React.FC<CategoryBreakdownProps> = ({ items }) =
                                 <Text style={{ fontSize: 14, color: '#4b5563' }}>
                                     • {item.description}
                                 </Text>
-                                <Text style={{ fontSize: 12, color: '#6b7280', marginLeft: 8 }}>
-                                    ₺{item.amount.toFixed(2)}
-                                </Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginLeft: 8 }}>
+                                    <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                                        {item.quantity} x ₺{item.unit_price.toFixed(2)}
+                                    </Text>
+                                    <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                                        ₺{item.amount.toFixed(2)}
+                                    </Text>
+                                </View>
                             </View>
                         ))}
                     </View>

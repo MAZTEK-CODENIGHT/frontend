@@ -1,50 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, BackHandler } from 'react-native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BillSummaryCard } from './components/BillSummaryCard';
 import { CategoryBreakdown } from './components/CategoryBreakdown';
 import { QuickActions } from './components/QuickActions';
 import { PeriodSelector } from './components/PeriodSelector';
-import { apiClient } from '../../api/client';
+import { apiService, BillData, AnomalyAnalysis } from '../../api/services';
 
 // Navigation types
 type RootStackParamList = {
     UserSelection: undefined;
     Dashboard: { userId: number; userName: string };
-    WhatIfSimulator: { userId: number; period: string };
+    WhatIfSimulator: { userId: number; userName: string; period: string };
     Anomalies: { userId: number; period: string };
-    Checkout: { userId: number; period: string; scenario: any; result: any };
+    Checkout: { userId: number; userName: string; period: string; scenario: any; result: any };
     BillDetail: { userId: number; period: string };
 };
 
 type DashboardScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Dashboard'>;
 type DashboardScreenRouteProp = RouteProp<RootStackParamList, 'Dashboard'>;
-
-interface BillData {
-    bill: {
-        bill_id: string;
-        total_amount: number;
-        subtotal: number;
-        taxes: number;
-        currency: string;
-        period_start: string;
-        period_end: string;
-    };
-    items: Array<{
-        item_id: string;
-        category: string;
-        amount: number;
-        description: string;
-    }>;
-}
-
-interface Anomaly {
-    category: string;
-    delta: string;
-    reason: string;
-    severity: 'high' | 'medium' | 'low';
-}
 
 const DashboardScreen = () => {
     const navigation = useNavigation<DashboardScreenNavigationProp>();
@@ -52,23 +27,58 @@ const DashboardScreen = () => {
     const { userId, userName } = route.params;
 
     const [billData, setBillData] = useState<BillData | null>(null);
-    const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
+    const [anomalies, setAnomalies] = useState<AnomalyAnalysis | null>(null);
     const [selectedPeriod, setSelectedPeriod] = useState('2025-07');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchBillData();
         fetchAnomalies();
     }, [userId, selectedPeriod]);
 
+    // Geri tuşu handling'i
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                // UserSelection'a dön
+                navigation.navigate('UserSelection');
+                return true; // Back press handled
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => subscription.remove();
+        }, [navigation])
+    );
+
     const fetchBillData = async () => {
         try {
             setLoading(true);
-            const response = await apiClient.get(`/bills/${userId}?period=${selectedPeriod}`);
-            setBillData(response.data.data);
-        } catch (error) {
+            setError(null);
+            const billDataResponse = await apiService.getBill(userId, selectedPeriod);
+            setBillData(billDataResponse);
+        } catch (error: any) {
             console.error('Bill fetch error:', error);
-            Alert.alert('Hata', 'Fatura bilgileri yüklenemedi');
+
+            // Backend'den gelen hata mesajını al
+            let errorMessage = 'Fatura bilgileri yüklenemedi';
+
+            if (error.response?.data?.error?.message) {
+                errorMessage = error.response.data.error.message;
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            // 404 hatası için özel mesaj
+            if (error.response?.status === 404) {
+                errorMessage = `${selectedPeriod} dönemi için fatura bulunamadı. Lütfen farklı bir dönem seçin.`;
+            }
+
+            setError(errorMessage);
+            setBillData(null);
         } finally {
             setLoading(false);
         }
@@ -76,13 +86,11 @@ const DashboardScreen = () => {
 
     const fetchAnomalies = async () => {
         try {
-            const response = await apiClient.post('/anomalies', {
-                user_id: userId,
-                period: selectedPeriod
-            });
-            setAnomalies(response.data.data.anomalies);
-        } catch (error) {
+            const anomaliesResponse = await apiService.detectAnomalies(userId, selectedPeriod);
+            setAnomalies(anomaliesResponse);
+        } catch (error: any) {
             console.error('Anomalies fetch error:', error);
+            // Don't show alert for anomalies as they're not critical
         }
     };
 
@@ -99,7 +107,7 @@ const DashboardScreen = () => {
     };
 
     const handleWhatIfSimulation = () => {
-        navigation.navigate('WhatIfSimulator', { userId, period: selectedPeriod });
+        navigation.navigate('WhatIfSimulator', { userId, userName, period: selectedPeriod });
     };
 
     if (loading) {
@@ -123,6 +131,7 @@ const DashboardScreen = () => {
                 <PeriodSelector
                     selectedPeriod={selectedPeriod}
                     onPeriodChange={handlePeriodChange}
+                    userId={userId}
                 />
 
                 {/* Bill Summary */}
@@ -133,6 +142,42 @@ const DashboardScreen = () => {
                         onViewDetail={handleViewBillDetail}
                         onViewAnomalies={handleViewAnomalies}
                     />
+                )}
+
+                {/* Error State */}
+                {error && (
+                    <View style={{ backgroundColor: 'white', borderRadius: 12, margin: 16, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }}>
+                        <View style={{ alignItems: 'center' }}>
+                            <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', textAlign: 'center', marginBottom: 12 }}>
+                                Fatura Yüklenemedi
+                            </Text>
+                            <Text style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
+                                {error}
+                            </Text>
+
+                            <View style={{ backgroundColor: '#fef3c7', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+                                <Text style={{ fontSize: 14, color: '#92400e', textAlign: 'center' }}>
+                                    💡 Öneriler:
+                                </Text>
+                                <Text style={{ fontSize: 12, color: '#92400e', textAlign: 'center', marginTop: 4 }}>
+                                    • Farklı bir dönem seçmeyi deneyin{'\n'}
+                                    • Sayfayı yenilemeyi deneyin{'\n'}
+                                    • Sistem yöneticisi ile iletişime geçin
+                                </Text>
+                            </View>
+
+                            <TouchableOpacity
+                                style={{ backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+                                onPress={() => {
+                                    setError(null);
+                                    fetchBillData();
+                                }}
+                            >
+                                <Text style={{ color: 'white', fontWeight: '600' }}>Tekrar Dene</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 )}
 
                 {/* Category Breakdown */}

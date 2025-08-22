@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { apiClient } from '../../api/client';
+import { apiService, User } from '../../api/services';
 
 // Navigation types
 type RootStackParamList = {
@@ -14,18 +14,6 @@ type RootStackParamList = {
 };
 
 type UserSelectionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'UserSelection'>;
-
-interface User {
-    user_id: number;
-    name: string;
-    msisdn: string;
-    current_plan: {
-        plan_id: number;
-        plan_name: string;
-        monthly_price: number;
-    };
-    type: string;
-}
 
 const UserSelectionScreen = () => {
     const navigation = useNavigation<UserSelectionScreenNavigationProp>();
@@ -39,11 +27,12 @@ const UserSelectionScreen = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await apiClient.get('/users');
-            setUsers(response.data.data);
-        } catch (error) {
+            const usersData = await apiService.getAllUsers();
+            setUsers(usersData);
+        } catch (error: any) {
             console.error('Users fetch error:', error);
-            Alert.alert('Hata', 'Kullanıcı listesi yüklenemedi');
+            const errorMessage = error.response?.data?.message || 'Kullanıcı listesi yüklenemedi';
+            Alert.alert('Hata', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -109,17 +98,25 @@ const UserSelectionScreen = () => {
                                                 {user.type === 'postpaid' ? 'Postpaid' : 'Prepaid'}
                                             </Text>
                                         </View>
-                                        <Text style={{ color: '#2563eb', fontWeight: '500' }}>
-                                            {user.current_plan.plan_name}
-                                        </Text>
+                                        {user.current_plan && (
+                                            <Text style={{ color: '#2563eb', fontWeight: '500' }}>
+                                                {user.current_plan.plan_name}
+                                            </Text>
+                                        )}
                                     </View>
                                 </View>
 
                                 <View style={{ alignItems: 'flex-end' }}>
-                                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#2563eb' }}>
-                                        ₺{user.current_plan.monthly_price}
-                                    </Text>
-                                    <Text style={{ color: '#6b7280', fontSize: 14 }}>Aylık</Text>
+                                    {user.current_plan ? (
+                                        <>
+                                            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#2563eb' }}>
+                                                ₺{user.current_plan.monthly_price}
+                                            </Text>
+                                            <Text style={{ color: '#6b7280', fontSize: 14 }}>Aylık</Text>
+                                        </>
+                                    ) : (
+                                        <Text style={{ color: '#6b7280', fontSize: 14 }}>Plan yok</Text>
+                                    )}
                                 </View>
                             </View>
                         </TouchableOpacity>

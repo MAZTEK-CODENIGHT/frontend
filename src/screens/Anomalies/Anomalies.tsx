@@ -1,49 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import { apiClient } from '../../api/client';
+import { View, Text, ScrollView, Alert, ActivityIndicator, BackHandler } from 'react-native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { apiService, AnomalyAnalysis } from '../../api/services';
 import { AnomalyCard } from './components/AnomalyCard';
 import { RiskScoreCard } from './components/RiskScoreCard';
 
-interface Anomaly {
-    category: string;
-    current_amount: number;
-    historical_average: number;
-    delta: string;
-    severity: 'high' | 'medium' | 'low';
-    reason: string;
-    suggested_action: string;
-    first_occurrence: boolean;
-}
-
-interface AnomaliesData {
-    anomalies: Anomaly[];
-    total_anomalies: number;
-    risk_score: number;
-}
-
 const AnomaliesScreen = () => {
     const route = useRoute();
+    const navigation = useNavigation<any>();
     const { userId, period } = route.params as { userId: number; period: string };
 
-    const [anomaliesData, setAnomaliesData] = useState<AnomaliesData | null>(null);
+    const [anomaliesData, setAnomaliesData] = useState<AnomalyAnalysis | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchAnomalies();
     }, [userId, period]);
 
+    // Geri tuşu handling'i
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                // Dashboard'a dön
+                navigation.goBack();
+                return true; // Back press handled
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => subscription.remove();
+        }, [navigation])
+    );
+
     const fetchAnomalies = async () => {
         try {
             setLoading(true);
-            const response = await apiClient.post('/anomalies', {
-                user_id: userId,
-                period: period
-            });
-            setAnomaliesData(response.data.data);
-        } catch (error) {
+            const anomaliesResponse = await apiService.detectAnomalies(userId, period);
+            setAnomaliesData(anomaliesResponse);
+        } catch (error: any) {
             console.error('Anomalies fetch error:', error);
-            Alert.alert('Hata', 'Anomali verileri yüklenemedi');
+            const errorMessage = error.response?.data?.message || 'Anomali verileri yüklenemedi';
+            Alert.alert('Hata', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -59,7 +56,12 @@ const AnomaliesScreen = () => {
             vas: 'VAS Servisleri',
             one_off: 'Tek Seferlik Ücretler',
             discount: 'İndirimler',
-            tax: 'Vergiler'
+            tax: 'Vergiler',
+            monthly_fee: 'Aylık Ücret',
+            voice_overage: 'Ses Aşımı',
+            data_overage: 'Veri Aşımı',
+            sms_overage: 'SMS Aşımı',
+            plan: 'Plan'
         };
         return names[category] || category;
     };
@@ -74,34 +76,39 @@ const AnomaliesScreen = () => {
             vas: '🎵',
             one_off: '💰',
             discount: '🎉',
-            tax: '🏛️'
+            tax: '🏛️',
+            monthly_fee: '📅',
+            voice_overage: '📞',
+            data_overage: '📱',
+            sms_overage: '💬',
+            plan: '📋'
         };
         return icons[category] || '❓';
     };
 
     if (loading) {
         return (
-            <View className="flex-1 bg-gray-50 justify-center items-center">
+            <View style={{ flex: 1, backgroundColor: '#f9fafb', justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#f59e0b" />
-                <Text className="text-lg text-gray-600 mt-4">Anomaliler analiz ediliyor...</Text>
+                <Text style={{ fontSize: 18, color: '#6b7280', marginTop: 16 }}>Anomaliler analiz ediliyor...</Text>
             </View>
         );
     }
 
-    if (!anomaliesData || anomaliesData.anomalies.length === 0) {
+    if (!anomaliesData || !anomaliesData.anomalies || anomaliesData.anomalies.length === 0) {
         return (
-            <View className="flex-1 bg-gray-50">
-                <View className="bg-orange-500 pt-12 pb-6 px-6">
-                    <Text className="text-white text-2xl font-bold">Anomali Analizi</Text>
-                    <Text className="text-orange-100 mt-1">Fatura güvenlik kontrolü</Text>
+            <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
+                <View style={{ backgroundColor: '#f59e0b', paddingTop: 48, paddingBottom: 24, paddingHorizontal: 24 }}>
+                    <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>Anomali Analizi</Text>
+                    <Text style={{ color: '#fef3c7', marginTop: 4 }}>Fatura güvenlik kontrolü</Text>
                 </View>
 
-                <View className="flex-1 justify-center items-center px-6">
-                    <Text className="text-6xl mb-4">✅</Text>
-                    <Text className="text-2xl font-bold text-gray-900 text-center mb-2">
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 }}>
+                    <Text style={{ fontSize: 64, marginBottom: 16 }}>✅</Text>
+                    <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#111827', textAlign: 'center', marginBottom: 8 }}>
                         Anomali Tespit Edilmedi
                     </Text>
-                    <Text className="text-gray-600 text-center text-lg">
+                    <Text style={{ color: '#6b7280', textAlign: 'center', fontSize: 18 }}>
                         Bu dönem için fatura kalemlerinde şüpheli bir durum bulunmuyor.
                     </Text>
                 </View>
@@ -110,22 +117,22 @@ const AnomaliesScreen = () => {
     }
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
             {/* Header */}
-            <View className="bg-orange-500 pt-12 pb-6 px-6">
-                <Text className="text-white text-2xl font-bold">Anomali Analizi</Text>
-                <Text className="text-orange-100 mt-1">
-                    {anomaliesData.total_anomalies} anomali tespit edildi
+            <View style={{ backgroundColor: '#f59e0b', paddingTop: 48, paddingBottom: 24, paddingHorizontal: 24 }}>
+                <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>Anomali Analizi</Text>
+                <Text style={{ color: '#fef3c7', marginTop: 4 }}>
+                    {anomaliesData.anomalies.length} anomali tespit edildi
                 </Text>
             </View>
 
-            <ScrollView className="flex-1">
+            <ScrollView style={{ flex: 1 }}>
                 {/* Risk Score */}
                 <RiskScoreCard riskScore={anomaliesData.risk_score} />
 
                 {/* Anomalies List */}
-                <View className="px-4">
-                    <Text className="text-xl font-bold text-gray-900 mb-4 px-2">
+                <View style={{ paddingHorizontal: 16 }}>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827', marginBottom: 16, paddingHorizontal: 8 }}>
                         Tespit Edilen Anomaliler
                     </Text>
 
@@ -140,18 +147,23 @@ const AnomaliesScreen = () => {
                 </View>
 
                 {/* Summary */}
-                <View className="bg-white rounded-xl m-4 p-6 shadow-lg">
-                    <Text className="text-lg font-semibold text-gray-900 mb-3">Özet</Text>
-                    <View className="space-y-2">
-                        <Text className="text-gray-700">
-                            • Toplam {anomaliesData.total_anomalies} anomali tespit edildi
+                <View style={{ backgroundColor: 'white', borderRadius: 12, margin: 16, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }}>
+                    <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 12 }}>Özet</Text>
+                    <View style={{ gap: 8 }}>
+                        <Text style={{ color: '#374151' }}>
+                            • Toplam {anomaliesData.anomalies.length} anomali tespit edildi
                         </Text>
-                        <Text className="text-gray-700">
-                            • Risk skoru: {anomaliesData.risk_score}/10
+                        <Text style={{ color: '#374151' }}>
+                            • Risk skoru: {anomaliesData.risk_score}/100
                         </Text>
-                        <Text className="text-gray-700">
+                        <Text style={{ color: '#374151' }}>
                             • En yüksek risk: {anomaliesData.anomalies.find(a => a.severity === 'high')?.category || 'Yok'}
                         </Text>
+                        {anomaliesData.recommendations && anomaliesData.recommendations.length > 0 && (
+                            <Text style={{ color: '#374151' }}>
+                                • Öneriler: {anomaliesData.recommendations[0]}
+                            </Text>
+                        )}
                     </View>
                 </View>
             </ScrollView>

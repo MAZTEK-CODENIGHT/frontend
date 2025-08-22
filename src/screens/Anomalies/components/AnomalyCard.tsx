@@ -1,16 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-
-interface Anomaly {
-    category: string;
-    current_amount: number;
-    historical_average: number;
-    delta: string;
-    severity: 'high' | 'medium' | 'low';
-    reason: string;
-    suggested_action: string;
-    first_occurrence: boolean;
-}
+import { View, Text } from 'react-native';
+import { Anomaly } from '../../../api/services';
 
 interface AnomalyCardProps {
     anomaly: Anomaly;
@@ -25,19 +15,10 @@ export const AnomalyCard: React.FC<AnomalyCardProps> = ({
 }) => {
     const getSeverityColor = (severity: string) => {
         switch (severity) {
-            case 'high': return 'bg-red-100 border-red-300';
-            case 'medium': return 'bg-yellow-100 border-yellow-300';
-            case 'low': return 'bg-orange-100 border-orange-300';
-            default: return 'bg-yellow-100 border-yellow-300';
-        }
-    };
-
-    const getSeverityTextColor = (severity: string) => {
-        switch (severity) {
-            case 'high': return 'text-red-800';
-            case 'medium': return 'text-yellow-800';
-            case 'low': return 'text-orange-800';
-            default: return 'text-yellow-800';
+            case 'high': return { bg: '#fef2f2', border: '#fecaca', text: '#991b1b' };
+            case 'medium': return { bg: '#fffbeb', border: '#fed7aa', text: '#92400e' };
+            case 'low': return { bg: '#fff7ed', border: '#fed7aa', text: '#c2410c' };
+            default: return { bg: '#fffbeb', border: '#fed7aa', text: '#92400e' };
         }
     };
 
@@ -50,60 +31,79 @@ export const AnomalyCard: React.FC<AnomalyCardProps> = ({
         }
     };
 
+    const colors = getSeverityColor(anomaly.severity);
+
     return (
-        <View className={`rounded-xl p-4 mb-4 border ${getSeverityColor(anomaly.severity)}`}>
+        <View style={{
+            backgroundColor: colors.bg,
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 16,
+            borderWidth: 1,
+            borderColor: colors.border
+        }}>
             {/* Header */}
-            <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                    <Text className="text-2xl mr-2">{categoryIcon}</Text>
-                    <Text className="text-lg font-bold text-gray-900">{categoryName}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 24, marginRight: 8 }}>{categoryIcon}</Text>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#111827' }}>{categoryName}</Text>
                 </View>
-                <View className={`px-2 py-1 rounded-full ${getSeverityColor(anomaly.severity)}`}>
-                    <Text className={`text-xs font-medium ${getSeverityTextColor(anomaly.severity)}`}>
+                <View style={{
+                    backgroundColor: colors.bg,
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 20
+                }}>
+                    <Text style={{
+                        fontSize: 12,
+                        fontWeight: '500',
+                        color: colors.text
+                    }}>
                         {getSeverityBadge(anomaly.severity)}
                     </Text>
                 </View>
             </View>
 
             {/* Delta Info */}
-            <View className="bg-white rounded-lg p-3 mb-3">
-                <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-sm text-gray-600">Mevcut Tutar:</Text>
-                    <Text className="font-bold text-gray-900">₺{anomaly.current_amount.toFixed(2)}</Text>
-                </View>
-                <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-sm text-gray-600">Geçmiş Ortalama:</Text>
-                    <Text className="font-medium text-gray-700">₺{anomaly.historical_average.toFixed(2)}</Text>
-                </View>
-                <View className="flex-row justify-between items-center">
-                    <Text className="text-sm text-gray-600">Değişim:</Text>
-                    <Text className={`font-bold ${anomaly.delta.includes('+') ? 'text-red-600' : 'text-green-600'
-                        }`}>
+            <View style={{ backgroundColor: 'white', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 14, color: '#6b7280' }}>Değişim:</Text>
+                    <Text style={{
+                        fontWeight: 'bold',
+                        color: anomaly.delta.includes('+') ? '#dc2626' : '#059669'
+                    }}>
                         {anomaly.delta}
+                    </Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, color: '#6b7280' }}>Güven:</Text>
+                    <Text style={{ fontWeight: '500', color: '#374151' }}>
+                        %{anomaly.confidence}
                     </Text>
                 </View>
             </View>
 
             {/* Reason */}
-            <View className="mb-3">
-                <Text className="text-sm font-medium text-gray-700 mb-1">Neden:</Text>
-                <Text className="text-gray-600">{anomaly.reason}</Text>
+            <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 14, fontWeight: '500', color: '#374151', marginBottom: 4 }}>Neden:</Text>
+                <Text style={{ color: '#6b7280' }}>{anomaly.reason}</Text>
             </View>
 
-            {/* Suggested Action */}
-            <View className="bg-blue-50 rounded-lg p-3 border-l-4 border-blue-400">
-                <Text className="text-sm font-medium text-blue-800 mb-1">Önerilen Aksiyon:</Text>
-                <Text className="text-blue-700">{anomaly.suggested_action}</Text>
+            {/* Confidence Level */}
+            <View style={{
+                backgroundColor: '#dbeafe',
+                borderRadius: 8,
+                padding: 12,
+                borderLeftWidth: 4,
+                borderLeftColor: '#3b82f6'
+            }}>
+                <Text style={{ fontSize: 14, fontWeight: '500', color: '#1e40af', marginBottom: 4 }}>
+                    Tespit Güveni: %{anomaly.confidence}
+                </Text>
+                <Text style={{ color: '#1e40af' }}>
+                    Bu anomali {anomaly.confidence}% güvenle tespit edildi
+                </Text>
             </View>
-
-            {/* First Occurrence Badge */}
-            {anomaly.first_occurrence && (
-                <View className="mt-3 bg-purple-100 rounded-lg p-2">
-                    <Text className="text-purple-800 text-sm font-medium text-center">
-                        🆕 İlk kez görülen ücret
-                    </Text>
-                </View>
-            )}
         </View>
     );
 };

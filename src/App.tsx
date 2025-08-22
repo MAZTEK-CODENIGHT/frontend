@@ -12,16 +12,6 @@ import CheckoutScreen from './screens/Checkout/Checkout';
 
 const Stack = createNativeStackNavigator();
 
-function RootStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="Home" component={Home} options={{headerShown: false}}/>
-      <Stack.Screen name="BillDetail" component={BillDetail} options={{headerShown: false}}/>
-    </Stack.Navigator>
-  );
-}
-
->>>>>>> origin/main
 export default function App() {
   return (
     <NavigationContainer>

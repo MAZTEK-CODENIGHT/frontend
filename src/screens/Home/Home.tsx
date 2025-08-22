@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import styles from './Home.style';
 
 import { Picker } from '@react-native-picker/picker';
 import MonthPicker from 'react-native-month-year-picker';
 import BillCard from '../../components/BillCard';
 
-import apiClient from '../../api/client';
+import { apiService } from '../../api/services';
 import moment from 'moment';
 import 'moment/locale/tr';
 
 const Home = () => {
+  const navigation = useNavigation<any>();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -24,12 +26,11 @@ const Home = () => {
   useEffect(() => {
     const fetchUsersData = async () => {
       try {
-        const usersData = await apiClient.get('/users');
+        const usersData = await apiService.getAllUsers();
         // Kullanıcı verileri geldikten sonra, liste boş değilse ilk kullanıcıyı otomatik seç
-        const fetchedUsers = usersData.data.data;
-        setUsers(fetchedUsers);
-        if (fetchedUsers.length > 0) {
-          setSelectedUser(fetchedUsers[0]);
+        setUsers(usersData);
+        if (usersData.length > 0) {
+          setSelectedUser(usersData[0]);
         }
       } catch (error) {
         console.log('ERROR', error);
@@ -53,15 +54,26 @@ const Home = () => {
 
     try {
       const period = moment(selectedDate).format('YYYY-MM');
-      const response = await apiClient.get(
-        `/bills/${selectedUser.user_id}?period=${period}`,
-      );
-      setInvoice(response.data.data);
+      const response = await apiService.getBill(selectedUser.user_id, period);
+      setInvoice(response);
       Alert.alert('Başarılı', 'Fatura getirildi.');
     } catch (error) {
       console.log('ERROR fetching invoice', error);
       Alert.alert('Hata', 'Fatura bulunamadı.');
     }
+  };
+
+  const navigateToWhatIf = () => {
+    if (!selectedUser) {
+      Alert.alert('Uyarı', 'Lütfen önce bir kullanıcı seçin.');
+      return;
+    }
+
+    const period = moment(selectedDate).format('YYYY-MM');
+    navigation.navigate('WhatIfSimulator', {
+      userId: selectedUser.user_id,
+      period: period
+    });
   };
 
   return (
@@ -72,15 +84,15 @@ const Home = () => {
           <Text style={styles.pickerTitle}>Müşteri Seçimi</Text>
           <View style={styles.pickerWrapper}>
             <Picker
-              selectedValue={selectedUser?.id}
+              selectedValue={selectedUser?.user_id}
               onValueChange={(itemValue) => {
-                const user = users.find(u => u.id === itemValue);
+                const user = users.find(u => u.user_id === itemValue);
                 setSelectedUser(user);
               }}
             >
               <Picker.Item label="Lütfen bir kullanıcı seçin..." value={null} color="#a9a9a9" />
               {users.map(user => (
-                <Picker.Item key={user.id} label={user.name} value={user.id} />
+                <Picker.Item key={user.user_id} label={user.name} value={user.user_id} />
               ))}
             </Picker>
           </View>
@@ -115,17 +127,26 @@ const Home = () => {
           )}
         </View>
 
-        {/* Faturayı Getir Butonu */}
+        {/* Action Buttons */}
         {selectedUser && selectedDate && (
-          <TouchableOpacity
-            style={styles.selectDateButton}
-            onPress={fetchInvoice}
-          >
-            <Text style={styles.selectDateButtonText}>Faturayı Getir</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.selectDateButton, styles.primaryButton]}
+              onPress={fetchInvoice}
+            >
+              <Text style={styles.selectDateButtonText}>Faturayı Getir</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.selectDateButton, styles.secondaryButton]}
+              onPress={navigateToWhatIf}
+            >
+              <Text style={styles.selectDateButtonText}>What-If Simülasyonu</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
-        {invoice && <BillCard data={invoice}/>}
+        {invoice && <BillCard data={invoice} />}
       </View>
     </View>
   );

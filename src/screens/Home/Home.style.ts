@@ -35,5 +35,17 @@ export default StyleSheet.create({
   },
   inputsContainer: {
     gap: 16,
-  }
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: '#059669',
+    flex: 1,
+  },
+  secondaryButton: {
+    backgroundColor: '#7c3aed',
+    flex: 1,
+  },
 });

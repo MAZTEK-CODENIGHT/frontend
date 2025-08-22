@@ -3,21 +3,10 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import moment from 'moment';
 import 'moment/locale/tr';
 import { useNavigation } from '@react-navigation/native';
+import { BillData } from '../../api/services';
 
 type BillCardProps = {
-  data: {
-    bill: {
-      period_start: string;
-      total_amount: number;
-      taxes: number;
-    };
-    items: {
-      category: string;
-      subtype: string;
-      description: string;
-      amount: number;
-    }[];
-  };
+  data: BillData;
 };
 
 const BillCard = ({ data }: BillCardProps) => {
@@ -30,10 +19,10 @@ const BillCard = ({ data }: BillCardProps) => {
   const { bill, items } = data;
 
   const packageItems = items.filter(
-    (item) => item.subtype === 'base_plan' || item.subtype === 'monthly_allowance'
+    (item) => item.subtype === 'base_plan' || item.subtype === 'monthly_allowance' || item.subtype === 'plan'
   );
   const otherItems = items.filter(
-    (item) => item.subtype !== 'base_plan' && item.subtype !== 'monthly_allowance'
+    (item) => item.subtype !== 'base_plan' && item.subtype !== 'monthly_allowance' && item.subtype !== 'plan'
   );
 
   const packageTotal = packageItems.reduce((sum, item) => sum + item.amount, 0);
@@ -58,7 +47,7 @@ const BillCard = ({ data }: BillCardProps) => {
             style={styles.sectionIcon}
           />
           <Text style={styles.sectionTitle}>Genç Tarife</Text>
-          <Text style={styles.sectionAmount}>{packageTotal}₺</Text>
+          <Text style={styles.sectionAmount}>{packageTotal.toFixed(2)}₺</Text>
         </View>
         {packageItems.map((item, index) => (
           <Text key={index} style={styles.itemText}>
@@ -67,16 +56,28 @@ const BillCard = ({ data }: BillCardProps) => {
         ))}
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Image
-            source={require('../../assets/tax.png')}
-            style={styles.sectionIcon}
-          />
-          <Text style={styles.sectionTitle}>Diğer Harcamalar</Text>
-          <Text style={styles.sectionAmount}>{otherTotal}₺</Text>
+      {otherItems.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Image
+              source={require('../../assets/tax.png')}
+              style={styles.sectionIcon}
+            />
+            <Text style={styles.sectionTitle}>Diğer Harcamalar</Text>
+            <Text style={styles.sectionAmount}>{otherTotal.toFixed(2)}₺</Text>
+          </View>
+          {otherItems.slice(0, 3).map((item, index) => (
+            <Text key={index} style={styles.itemText}>
+              • {item.description}
+            </Text>
+          ))}
+          {otherItems.length > 3 && (
+            <Text style={styles.itemText}>
+              • ... ve {otherItems.length - 3} diğer kalem
+            </Text>
+          )}
         </View>
-      </View>
+      )}
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -85,7 +86,7 @@ const BillCard = ({ data }: BillCardProps) => {
             style={styles.sectionIcon}
           />
           <Text style={styles.sectionTitle}>Vergiler</Text>
-          <Text style={styles.sectionAmount}>{taxesTotal}₺</Text>
+          <Text style={styles.sectionAmount}>{taxesTotal.toFixed(2)}₺</Text>
         </View>
       </View>
 

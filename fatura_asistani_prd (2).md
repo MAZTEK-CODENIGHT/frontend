@@ -21,6 +21,7 @@
 ## 2. Zorunlu Özellikler (MVP) - Case'e %100 Uyumlu
 
 ### 2.1 Profil & Fatura Seçimi (mock)
+
 - **Kullanıcı Seçimi:** Drop-down menüden kullanıcı seçimi
 - **Dönem Seçimi:** Döneme göre fatura seçimi (YYYY-MM)
 - **Fatura Özeti Kartları:**
@@ -30,7 +31,9 @@
   - Tek Seferlik Ücretler
 
 ### 2.2 Açıklanabilir Fatura
+
 - **Kategori Bazlı Breakdown:**
+
   - data (veri kullanımı)
   - voice (ses aramaları)
   - sms (mesajlaşma)
@@ -41,6 +44,7 @@
   - indirim (kampanya indirimleri)
 
 - **Detaylı Açıklamalar:**
+
   - Her kalem için kısa açıklama ve detay
   - Örnek: "07.06'da 2×Premium SMS"
   - Örnek: "Ay içinde 1.2 GB aşım → 1.2×8.50 TL"
@@ -49,7 +53,9 @@
   - "Bu ay toplam 6,2GB yurt içi, 120dk arama yaptınız. Ücret artışının %72'si Premium SMS kaynaklı."
 
 ### 2.3 Anomali Tespiti
+
 - **Basit Kurallar + İstatistik:**
+
   - Kalem bazında son 3 aya göre %X üstünde (örn. %80+)
   - Yeni görünen ücret (ilk kez) → şüpheli etiketleme
   - Roaming/Premium SMS/VAS artışı uyarıları
@@ -61,17 +67,21 @@
   - Roaming: `roaming_mb > 0` & önceki ay 0 → "yeni roaming"
 
 ### 2.4 What-If Simülasyonu
+
 - **Plan Değişirse Senaryosu:**
+
   - Katalogdan yeni plan seçimi
   - Yeni sabit ücret + aşım ücretleriyle alternatif toplam maliyet
   - Formula: `new_total = new_plan.monthly_price + max(0, usage_gb - quota_gb)*overage_gb + ...`
 
 - **Ek Paket Eklenseydi Senaryosu:**
+
   - Örn. "Sosyal 5GB" ek paketi
   - Aşımın bir kısmı düşer → yeni toplam
   - `effective_quota_gb = quota_gb + Σ(addons.extra_gb)`
 
 - **Premium SMS/VAS İptal Edilmiş Olsaydı:**
+
   - İlgili kalemler hariç tekrar hesapla
   - VAS/Premium SMS kapalı: ilgili kalemler toplamdan çıkarılır
 
@@ -81,11 +91,13 @@
   - Skor: en düşük `new_total + tasarruf = current_total - new_total`
 
 ### 2.5 Akışlar (Mock)
+
 - **"VAS iptal et"** → onay → başarı (mock)
 - **"Planı değiştir"** → mock checkout
 - **"Ek paket ekle"** → mock checkout
 
 ### 2.6 Sunum Gereksinimleri
+
 - **3 dakikalık demo:** Faturayı aç → anomalileri gör → What-If çalıştır → en iyi seçeneği uygula (mock)
 
 ---
@@ -95,6 +107,7 @@
 ### 3.1 Veri Yapıları (JSON/CSV)
 
 #### users.json
+
 ```json
 [
   {
@@ -108,24 +121,26 @@
 ```
 
 #### plans.json
+
 ```json
 [
   {
-      "plan_id": 2,
-      "plan_name": "Süper Online 20GB",
-      "type": "postpaid",
-      "quota_gb": 20,
-      "quota_min": 1000,
-      "quota_sms": 1000,
-      "monthly_price": 129.00,
-      "overage_gb": 8.50,
-      "overage_min": 0.85,
-      "overage_sms": 0.35
+    "plan_id": 2,
+    "plan_name": "Süper Online 20GB",
+    "type": "postpaid",
+    "quota_gb": 20,
+    "quota_min": 1000,
+    "quota_sms": 1000,
+    "monthly_price": 129.0,
+    "overage_gb": 8.5,
+    "overage_min": 0.85,
+    "overage_sms": 0.35
   }
 ]
 ```
 
 #### bill_headers.json
+
 ```json
 [
   {
@@ -134,13 +149,14 @@
     "period_start": "2025-07-01",
     "period_end": "2025-07-31",
     "issue_date": "2025-08-05",
-    "total_amount": 189.50,
+    "total_amount": 189.5,
     "currency": "TRY"
   }
 ]
 ```
 
 #### bill_items.json
+
 ```json
 [
   {
@@ -152,7 +168,7 @@
     "amount": 59.85,
     "unit_price": 3.99,
     "quantity": 15,
-    "tax_rate": 0.20,
+    "tax_rate": 0.2,
     "created_at": "2025-07-15T14:30:00Z"
   },
   {
@@ -161,20 +177,22 @@
     "category": "data",
     "subtype": "data_overage",
     "description": "Veri aşım ücreti",
-    "amount": 25.50,
-    "unit_price": 8.50,
+    "amount": 25.5,
+    "unit_price": 8.5,
     "quantity": 3,
-    "tax_rate": 0.20,
+    "tax_rate": 0.2,
     "created_at": "2025-07-28T23:59:00Z"
   }
 ]
 ```
 
 **Kategoriler:**
+
 - `data|voice|sms|roaming|premium_sms|vas|one_off|discount|tax`
 - **Subtype örnekleri:** `data_overage, voice_overage, intl_call, vas_tone, premium_3rdparty`
 
 #### usage_daily.json
+
 ```json
 [
   {
@@ -189,18 +207,20 @@
 ```
 
 #### vas_catalog.json
+
 ```json
 [
   {
     "vas_id": "VAS001",
     "name": "Caller Tunes",
-    "monthly_fee": 9.90,
+    "monthly_fee": 9.9,
     "provider": "Turkcell"
   }
 ]
 ```
 
 #### premium_sms_catalog.json
+
 ```json
 [
   {
@@ -212,6 +232,7 @@
 ```
 
 #### add_on_packs.json
+
 ```json
 [
   {
@@ -221,7 +242,7 @@
     "extra_gb": 5,
     "extra_min": 0,
     "extra_sms": 0,
-    "price": 25.00
+    "price": 25.0
   }
 ]
 ```
@@ -243,18 +264,18 @@ function explainBill(billItems) {
     acc[item.category].lines.push(generateExplanation(item));
     return acc;
   }, {});
-  
+
   return {
     summary: {
       total: billItems.reduce((sum, item) => sum + item.amount, 0),
       taxes: breakdown.tax?.total || 0,
-      savings_hint: calculateSavingsHint(billItems)
+      savings_hint: calculateSavingsHint(billItems),
     },
     breakdown: Object.entries(breakdown).map(([category, data]) => ({
       category,
       total: data.total,
-      lines: data.lines
-    }))
+      lines: data.lines,
+    })),
   };
 }
 
@@ -264,7 +285,9 @@ function generateExplanation(item) {
     case 'data_overage':
       return `Ay içinde ${item.quantity} GB aşım → ${item.quantity}×${item.unit_price} TL`;
     case 'premium_3rdparty':
-      return `${item.description} → ${item.quantity}×${item.unit_price} TL (sağlayıcı: ${getProvider(item)})`;
+      return `${item.description} → ${item.quantity}×${
+        item.unit_price
+      } TL (sağlayıcı: ${getProvider(item)})`;
     case 'vas_tone':
       return `${getVasName(item)} servisi aylık ücret ${item.unit_price} TL`;
     default:
@@ -279,57 +302,64 @@ function generateExplanation(item) {
 function detectAnomalies(userId, currentPeriod) {
   const currentBill = getBill(userId, currentPeriod);
   const lastThreeMonths = getLastThreeMonthsBills(userId, currentPeriod);
-  
+
   const anomalies = [];
-  
+
   // Kategori bazlı anomali kontrolü
   const categories = ['data', 'voice', 'sms', 'premium_sms', 'vas', 'roaming'];
-  
+
   categories.forEach(category => {
     const currentAmount = calculateCategoryTotal(currentBill, category);
-    const historicalAmounts = lastThreeMonths.map(bill => calculateCategoryTotal(bill, category));
-    
+    const historicalAmounts = lastThreeMonths.map(bill =>
+      calculateCategoryTotal(bill, category),
+    );
+
     // Z-score hesaplama
-    const mean = historicalAmounts.reduce((sum, val) => sum + val, 0) / historicalAmounts.length;
+    const mean =
+      historicalAmounts.reduce((sum, val) => sum + val, 0) /
+      historicalAmounts.length;
     const stdDev = calculateStdDev(historicalAmounts, mean);
     const zScore = (currentAmount - mean) / stdDev;
-    
+
     // % değişim hesaplama
-    const percentageChange = mean > 0 ? ((currentAmount - mean) / mean) * 100 : 0;
-    
+    const percentageChange =
+      mean > 0 ? ((currentAmount - mean) / mean) * 100 : 0;
+
     if (zScore > 2 || percentageChange > 80) {
       anomalies.push({
         category,
         delta: percentageChange.toFixed(0) + '%',
-        reason: `Önceki ortalama ${mean.toFixed(2)} TL iken bu ay ${currentAmount.toFixed(2)} TL`,
-        suggested_action: getSuggestedAction(category)
+        reason: `Önceki ortalama ${mean.toFixed(
+          2,
+        )} TL iken bu ay ${currentAmount.toFixed(2)} TL`,
+        suggested_action: getSuggestedAction(category),
       });
     }
-    
+
     // Yeni kalem kontrolü
     if (mean === 0 && currentAmount > 0) {
       anomalies.push({
         category,
         delta: 'YENİ',
         reason: 'İlk kez görüldü',
-        suggested_action: 'İnceleme önerilir'
+        suggested_action: 'İnceleme önerilir',
       });
     }
   });
-  
+
   // Roaming özel kontrolü
   const currentRoaming = getCurrentRoamingUsage(userId, currentPeriod);
   const lastRoaming = getLastMonthRoamingUsage(userId, currentPeriod);
-  
+
   if (currentRoaming.roaming_mb > 0 && lastRoaming.roaming_mb === 0) {
     anomalies.push({
       category: 'roaming',
       delta: 'YENİ ROAMING',
       reason: 'Yurt dışı kullanım tespit edildi',
-      suggested_action: 'Roaming paketi önerilebilir'
+      suggested_action: 'Roaming paketi önerilebilir',
     });
   }
-  
+
   return { anomalies };
 }
 ```
@@ -341,38 +371,46 @@ function calculateWhatIf(userId, period, scenario) {
   const usage = getUserUsage(userId, period);
   const currentBill = getBill(userId, period);
   const currentTotal = currentBill.total_amount;
-  
+
   let newTotal = 0;
   let details = [];
-  
+
   // Plan değişikliği
   if (scenario.plan_id) {
     const newPlan = getPlan(scenario.plan_id);
     newTotal += newPlan.monthly_price;
-    details.push(`Yeni plan: ${newPlan.plan_name} - ${newPlan.monthly_price} TL`);
-    
+    details.push(
+      `Yeni plan: ${newPlan.plan_name} - ${newPlan.monthly_price} TL`,
+    );
+
     // Veri aşımı hesabı
-    const effectiveDataGB = newPlan.quota_gb + (scenario.addons?.reduce((sum, addon) => {
-      const addonInfo = getAddon(addon);
-      return sum + addonInfo.extra_gb;
-    }, 0) || 0);
-    
+    const effectiveDataGB =
+      newPlan.quota_gb +
+      (scenario.addons?.reduce((sum, addon) => {
+        const addonInfo = getAddon(addon);
+        return sum + addonInfo.extra_gb;
+      }, 0) || 0);
+
     const dataOverage = Math.max(0, usage.total_gb - effectiveDataGB);
     if (dataOverage > 0) {
       const overageCost = dataOverage * newPlan.overage_gb;
       newTotal += overageCost;
-      details.push(`Veri aşımı: ${dataOverage}GB × ${newPlan.overage_gb} TL = ${overageCost} TL`);
+      details.push(
+        `Veri aşımı: ${dataOverage}GB × ${newPlan.overage_gb} TL = ${overageCost} TL`,
+      );
     }
-    
+
     // Dakika aşımı hesabı
     const voiceOverage = Math.max(0, usage.total_minutes - newPlan.quota_min);
     if (voiceOverage > 0) {
       const voiceOverageCost = voiceOverage * newPlan.overage_min;
       newTotal += voiceOverageCost;
-      details.push(`Dakika aşımı: ${voiceOverage}dk × ${newPlan.overage_min} TL = ${voiceOverageCost} TL`);
+      details.push(
+        `Dakika aşımı: ${voiceOverage}dk × ${newPlan.overage_min} TL = ${voiceOverageCost} TL`,
+      );
     }
   }
-  
+
   // Ek paket ekleme
   if (scenario.addons) {
     scenario.addons.forEach(addonId => {
@@ -381,7 +419,7 @@ function calculateWhatIf(userId, period, scenario) {
       details.push(`Ek paket: ${addon.name} - ${addon.price} TL`);
     });
   }
-  
+
   // VAS iptal
   if (scenario.disable_vas) {
     const vasItems = currentBill.items.filter(item => item.category === 'vas');
@@ -393,30 +431,40 @@ function calculateWhatIf(userId, period, scenario) {
     const vasCost = vasItems.reduce((sum, item) => sum + item.amount, 0);
     newTotal += vasCost;
   }
-  
+
   // Premium SMS bloke
   if (scenario.block_premium_sms) {
-    const premiumSmsItems = currentBill.items.filter(item => item.category === 'premium_sms');
-    const premiumSmsSavings = premiumSmsItems.reduce((sum, item) => sum + item.amount, 0);
+    const premiumSmsItems = currentBill.items.filter(
+      item => item.category === 'premium_sms',
+    );
+    const premiumSmsSavings = premiumSmsItems.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    );
     details.push(`Premium SMS bloke tasarrufu: -${premiumSmsSavings} TL`);
   } else {
     // Premium SMS devam ediyor (bu senaryoda tekrar gönderilirse)
-    const premiumSmsItems = currentBill.items.filter(item => item.category === 'premium_sms');
-    const premiumSmsCost = premiumSmsItems.reduce((sum, item) => sum + item.amount, 0);
+    const premiumSmsItems = currentBill.items.filter(
+      item => item.category === 'premium_sms',
+    );
+    const premiumSmsCost = premiumSmsItems.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    );
     newTotal += premiumSmsCost;
   }
-  
+
   // Vergiler
-  const taxRate = 0.20; // %20 KDV
+  const taxRate = 0.2; // %20 KDV
   const taxes = newTotal * taxRate;
   newTotal += taxes;
-  
+
   const saving = currentTotal - newTotal;
-  
+
   return {
     new_total: newTotal.toFixed(2),
     saving: saving.toFixed(2),
-    details
+    details,
   };
 }
 ```
@@ -428,6 +476,7 @@ function calculateWhatIf(userId, period, scenario) {
 ### 5.1 Endpoint'ler
 
 #### Kullanıcı ve Katalog
+
 ```http
 GET /api/users/{id}
 Response: { user_id, name, current_plan, msisdn }
@@ -440,6 +489,7 @@ Response: { plans:[...], addons:[...], vas:[...], premium_sms:[...] }
 ```
 
 #### Açıklama ve Anomali
+
 ```http
 POST /api/explain
 Content-Type: application/json
@@ -475,6 +525,7 @@ Response: {
 ```
 
 #### What-If ve Checkout
+
 ```http
 POST /api/whatif
 Content-Type: application/json
@@ -550,6 +601,7 @@ curl -s -X POST http://localhost:3000/api/checkout \
 MongoDB'de her collection için şema yapısı:
 
 #### A. Users Collection
+
 ```javascript
 // Collection: users
 {
@@ -567,6 +619,7 @@ MongoDB'de her collection için şema yapısı:
 ```
 
 #### B. Plans Collection
+
 ```javascript
 // Collection: plans
 {
@@ -587,6 +640,7 @@ MongoDB'de her collection için şema yapısı:
 ```
 
 #### C. Bills Collection
+
 ```javascript
 // Collection: bills
 {
@@ -619,6 +673,7 @@ MongoDB'de her collection için şema yapısı:
 ```
 
 #### D. Usage Daily Collection
+
 ```javascript
 // Collection: usage_daily
 {
@@ -634,6 +689,7 @@ MongoDB'de her collection için şema yapısı:
 ```
 
 #### E. VAS Catalog Collection
+
 ```javascript
 // Collection: vas_catalog
 {
@@ -649,6 +705,7 @@ MongoDB'de her collection için şema yapısı:
 ```
 
 #### F. Premium SMS Catalog Collection
+
 ```javascript
 // Collection: premium_sms_catalog
 {
@@ -663,6 +720,7 @@ MongoDB'de her collection için şema yapısı:
 ```
 
 #### G. Add-on Packs Collection
+
 ```javascript
 // Collection: add_on_packs
 {
@@ -734,7 +792,7 @@ db.users.insertMany([
   },
   {
     "user_id": 1002,
-    "name": "Fatma Demir", 
+    "name": "Fatma Demir",
     "msisdn": "5557891234",
     "current_plan_id": 1,
     "type": "postpaid",
@@ -746,7 +804,7 @@ db.users.insertMany([
   {
     "user_id": 1003,
     "name": "Mehmet Kaya",
-    "msisdn": "5556547890", 
+    "msisdn": "5556547890",
     "current_plan_id": 3,
     "type": "postpaid",
     "active_vas": [],
@@ -1153,10 +1211,12 @@ db.bills.insertMany([
 
 ### 7.1 API Base URL ve Authentication
 ```
+
 Base URL: http://localhost:3000/api
 Content-Type: application/json
 Authentication: None (hackathon için)
-```
+
+````
 
 ### 7.2 API Endpoints - Detaylı Spesifikasyon
 
@@ -1206,7 +1266,7 @@ Response 200:
     "active_addons": [101]
   }
 }
-```
+````
 
 #### B. Bill Management
 
@@ -1234,7 +1294,7 @@ Response 200:
       {
         "item_id": "ITM001",
         "category": "premium_sms",
-        "subtype": "premium_3rdparty", 
+        "subtype": "premium_3rdparty",
         "description": "3838 numarasına Premium SMS",
         "amount": 59.85,
         "unit_price": 3.99,
@@ -1277,7 +1337,7 @@ Response 200:
       "anomaly_count": 2
     },
     {
-      "period": "2025-06", 
+      "period": "2025-06",
       "total_amount": 154.20,
       "change_percent": -5.2,
       "anomaly_count": 0
@@ -1361,7 +1421,7 @@ Response 200:
         "first_occurrence": false
       },
       {
-        "category": "roaming", 
+        "category": "roaming",
         "current_amount": 45.60,
         "historical_average": 0.00,
         "delta": "YENİ",
@@ -1406,7 +1466,7 @@ Response 200:
     "saving_percent": 45.9,
     "details": [
       "Plan değişikliği: Premium 30GB → +179.00 TL",
-      "Sosyal 5GB ek paketi → +25.00 TL", 
+      "Sosyal 5GB ek paketi → +25.00 TL",
       "VAS iptali (Caller Tunes) → -9.90 TL",
       "Premium SMS bloke → -59.85 TL",
       "Aşım düşüşü (30GB > 23.2GB) → -25.50 TL",
@@ -1448,7 +1508,7 @@ Response 200:
         "rank": 2
       },
       {
-        "id": 2, 
+        "id": 2,
         "name": "Premium (VAS iptal)",
         "total": 102.45,
         "saving": 87.05,
@@ -1515,7 +1575,7 @@ Response 200:
     "premium_sms": [
       {
         "shortcode": "3838",
-        "provider": "Superonline", 
+        "provider": "Superonline",
         "unit_price": 3.99,
         "service_name": "Oyun Servisleri"
       }
@@ -1528,7 +1588,7 @@ Response 200:
 
 ```http
 POST /api/checkout
-Content-Type: application/json  
+Content-Type: application/json
 Body:
 {
   "user_id": 1001,
@@ -1538,7 +1598,7 @@ Body:
       "payload": {"plan_id": 3}
     },
     {
-      "type": "add_addon", 
+      "type": "add_addon",
       "payload": {"addon_id": 101}
     },
     {
@@ -1569,7 +1629,7 @@ Response 201:
       },
       {
         "type": "add_addon",
-        "status": "success", 
+        "status": "success",
         "message": "Sosyal 5GB paketi eklendi"
       }
     ],
@@ -1648,13 +1708,13 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="UserSelection">
-          <Stack.Screen name="UserSelection" component={UserSelectionScreen} />
-          <Stack.Screen name="Dashboard" component={DashboardScreen} />
-            <Stack.Screen name="BillDetail" component={BillDetailScreen} />
-            <Stack.Screen name="Anomalies" component={AnomaliesScreen} />
-          <Stack.Screen name="WhatIfSimulator" component={WhatIfScreen} />
-          <Stack.Screen name="Checkout" component={CheckoutScreen} />
-          <Stack.Screen name="LLMExplain" component={LLMExplainScreen} />
+        <Stack.Screen name="UserSelection" component={UserSelectionScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="BillDetail" component={BillDetailScreen} />
+        <Stack.Screen name="Anomalies" component={AnomaliesScreen} />
+        <Stack.Screen name="WhatIfSimulator" component={WhatIfScreen} />
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
+        <Stack.Screen name="LLMExplain" component={LLMExplainScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -1686,31 +1746,40 @@ const UserSelectionScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-    
-  const handleUserSelect = (user) => {
+
+  const handleUserSelect = user => {
     setSelectedUser(user);
-    navigation.navigate('Dashboard', { userId: user.user_id, userName: user.name });
+    navigation.navigate('Dashboard', {
+      userId: user.user_id,
+      userName: user.name,
+    });
   };
 
   return (
     <View className="flex-1 bg-gray-50 p-6">
       {/* Header */}
       <View className="mt-12 mb-8">
-        <Text className="text-3xl font-bold text-gray-900">Fatura Asistanı</Text>
+        <Text className="text-3xl font-bold text-gray-900">
+          Fatura Asistanı
+        </Text>
         <Text className="text-lg text-gray-600 mt-2">Kullanıcınızı seçin</Text>
       </View>
 
       {/* User List */}
       <ScrollView className="flex-1">
         {users.map(user => (
-          <TouchableOpacity 
+          <TouchableOpacity
             key={user.user_id}
             className="bg-white rounded-lg p-4 mb-3 shadow-sm border border-gray-200"
             onPress={() => handleUserSelect(user)}
           >
-            <Text className="text-lg font-semibold text-gray-900">{user.name}</Text>
+            <Text className="text-lg font-semibold text-gray-900">
+              {user.name}
+            </Text>
             <Text className="text-sm text-gray-500">{user.msisdn}</Text>
-            <Text className="text-sm text-blue-600 mt-1">{user.current_plan.plan_name}</Text>
+            <Text className="text-sm text-blue-600 mt-1">
+              {user.current_plan.plan_name}
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -1733,7 +1802,7 @@ const DashboardScreen = ({ route, navigation }) => {
     <View className="bg-white rounded-xl p-6 m-4 shadow-lg">
       <Text className="text-2xl font-bold text-gray-900">₺{bill.total_amount}</Text>
       <Text className="text-gray-600 mb-4">Toplam Fatura</Text>
-      
+
       <View className="flex-row justify-between">
         <View>
           <Text className="text-sm text-gray-500">Hizmetler</Text>
@@ -1746,7 +1815,7 @@ const DashboardScreen = ({ route, navigation }) => {
       </View>
 
       {anomalies.length > 0 && (
-        <TouchableOpacity 
+        <TouchableOpacity
           className="bg-yellow-100 rounded-lg p-3 mt-4"
           onPress={() => navigation.navigate('Anomalies', { userId, period: selectedPeriod })}
         >
@@ -1764,4 +1833,5 @@ const DashboardScreen = ({ route, navigation }) => {
       <Text className="text-sm text-gray-500 uppercase">{category}</Text>
       <Text className="text-lg font-bold text-gray-900">₺{amount}</Text>
       <Text className="text-xs text-gray-400">%{percentage}</Text>
-    
+
+```

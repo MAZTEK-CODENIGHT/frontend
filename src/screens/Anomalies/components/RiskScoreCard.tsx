@@ -7,74 +7,127 @@ interface RiskScoreCardProps {
 
 export const RiskScoreCard: React.FC<RiskScoreCardProps> = ({ riskScore }) => {
     const getRiskLevel = (score: number) => {
-        if (score >= 8) return { level: 'Yüksek', color: 'bg-red-500', textColor: 'text-red-100' };
-        if (score >= 5) return { level: 'Orta', color: 'bg-yellow-500', textColor: 'text-yellow-100' };
-        return { level: 'Düşük', color: 'bg-green-500', textColor: 'text-green-100' };
+        if (score >= 70) return { level: 'Yüksek', color: '#ef4444', textColor: '#fef2f2' };
+        if (score >= 40) return { level: 'Orta', color: '#f59e0b', textColor: '#fffbeb' };
+        return { level: 'Düşük', color: '#10b981', textColor: '#ecfdf5' };
     };
 
     const getRiskDescription = (score: number) => {
-        if (score >= 8) return 'Faturada ciddi anomaliler tespit edildi. Acil aksiyon gerekli.';
-        if (score >= 5) return 'Faturada orta seviyede anomaliler var. Dikkatli takip önerilir.';
+        if (score >= 70) return 'Faturada ciddi anomaliler tespit edildi. Acil aksiyon gerekli.';
+        if (score >= 40) return 'Faturada orta seviyede anomaliler var. Dikkatli takip önerilir.';
         return 'Fatura genel olarak normal görünüyor.';
     };
 
     const getRiskIcon = (score: number) => {
-        if (score >= 8) return '🚨';
-        if (score >= 5) return '⚠️';
+        if (score >= 70) return '🚨';
+        if (score >= 40) return '⚠️';
         return '✅';
     };
 
     const riskInfo = getRiskLevel(riskScore);
+    const riskPercentage = (riskScore / 100) * 100;
 
     return (
-        <View className="bg-white rounded-xl m-4 p-6 shadow-lg">
-            <Text className="text-xl font-bold text-gray-900 mb-4">Risk Analizi</Text>
+        <View style={{
+            backgroundColor: 'white',
+            borderRadius: 12,
+            margin: 16,
+            padding: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3
+        }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#111827', marginBottom: 16 }}>Risk Analizi</Text>
 
             {/* Risk Score Display */}
-            <View className="items-center mb-6">
-                <View className={`w-24 h-24 rounded-full ${riskInfo.color} items-center justify-center mb-3`}>
-                    <Text className="text-3xl font-bold text-white">{riskScore}</Text>
+            <View style={{ alignItems: 'center', marginBottom: 24 }}>
+                <View style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: 48,
+                    backgroundColor: riskInfo.color,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 12
+                }}>
+                    <Text style={{ fontSize: 32, fontWeight: 'bold', color: 'white' }}>{riskScore}</Text>
                 </View>
-                <Text className="text-lg font-semibold text-gray-700">Risk Skoru</Text>
-                <Text className="text-sm text-gray-500">10 üzerinden</Text>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#374151' }}>Risk Skoru</Text>
+                <Text style={{ fontSize: 14, color: '#6b7280' }}>100 üzerinden</Text>
             </View>
 
             {/* Risk Level */}
-            <View className={`${riskInfo.color} rounded-lg p-4 mb-4`}>
-                <View className="flex-row items-center justify-center">
-                    <Text className="text-2xl mr-2">{getRiskIcon(riskScore)}</Text>
-                    <Text className={`text-lg font-bold ${riskInfo.textColor}`}>
+            <View style={{
+                backgroundColor: riskInfo.color,
+                borderRadius: 8,
+                padding: 16,
+                marginBottom: 16
+            }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 24, marginRight: 8 }}>{getRiskIcon(riskScore)}</Text>
+                    <Text style={{
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        color: riskInfo.textColor
+                    }}>
                         {riskInfo.level} Risk
                     </Text>
                 </View>
             </View>
 
             {/* Risk Description */}
-            <View className="bg-gray-50 rounded-lg p-4">
-                <Text className="text-gray-700 text-center">
+            <View style={{ backgroundColor: '#f9fafb', borderRadius: 8, padding: 16 }}>
+                <Text style={{ color: '#374151', textAlign: 'center' }}>
                     {getRiskDescription(riskScore)}
                 </Text>
             </View>
 
             {/* Risk Scale */}
-            <View className="mt-4">
-                <Text className="text-sm font-medium text-gray-700 mb-2">Risk Skalası:</Text>
-                <View className="flex-row items-center space-x-2">
-                    <View className="flex-1 h-2 bg-green-200 rounded-full overflow-hidden">
-                        <View className="h-full bg-green-500 rounded-full" style={{ width: '30%' }} />
+            <View style={{ marginTop: 16 }}>
+                <Text style={{ fontSize: 14, fontWeight: '500', color: '#374151', marginBottom: 8 }}>Risk Skalası:</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ flex: 1, height: 8, backgroundColor: '#d1fae5', borderRadius: 4, overflow: 'hidden' }}>
+                        <View style={{ height: '100%', backgroundColor: '#10b981', borderRadius: 4, width: '30%' }} />
                     </View>
-                    <View className="flex-1 h-2 bg-yellow-200 rounded-full overflow-hidden">
-                        <View className="h-full bg-yellow-500 rounded-full" style={{ width: '50%' }} />
+                    <View style={{ flex: 1, height: 8, backgroundColor: '#fef3c7', borderRadius: 4, overflow: 'hidden' }}>
+                        <View style={{ height: '100%', backgroundColor: '#f59e0b', borderRadius: 4, width: '50%' }} />
                     </View>
-                    <View className="flex-1 h-2 bg-red-200 rounded-full overflow-hidden">
-                        <View className="h-full bg-red-500 rounded-full" style={{ width: '20%' }} />
+                    <View style={{ flex: 1, height: 8, backgroundColor: '#fecaca', borderRadius: 4, overflow: 'hidden' }}>
+                        <View style={{ height: '100%', backgroundColor: '#ef4444', borderRadius: 4, width: '20%' }} />
                     </View>
                 </View>
-                <View className="flex-row justify-between mt-1">
-                    <Text className="text-xs text-gray-500">0-3</Text>
-                    <Text className="text-xs text-gray-500">4-7</Text>
-                    <Text className="text-xs text-gray-500">8-10</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                    <Text style={{ fontSize: 12, color: '#6b7280' }}>0-30</Text>
+                    <Text style={{ fontSize: 12, color: '#6b7280' }}>31-70</Text>
+                    <Text style={{ fontSize: 12, color: '#6b7280' }}>71-100</Text>
                 </View>
+            </View>
+
+            {/* Current Risk Position */}
+            <View style={{ marginTop: 16, alignItems: 'center' }}>
+                <View style={{
+                    width: '100%',
+                    height: 8,
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: 4,
+                    position: 'relative'
+                }}>
+                    <View style={{
+                        position: 'absolute',
+                        left: `${riskPercentage}%`,
+                        top: -4,
+                        width: 16,
+                        height: 16,
+                        backgroundColor: riskInfo.color,
+                        borderRadius: 8,
+                        transform: [{ translateX: -8 }]
+                    }} />
+                </View>
+                <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>
+                    Mevcut pozisyon: {riskScore}/100
+                </Text>
             </View>
         </View>
     );

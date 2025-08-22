@@ -1,23 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-
-interface Bill {
-    total_amount: number;
-    subtotal: number;
-    taxes: number;
-    currency: string;
-}
-
-interface Anomaly {
-    category: string;
-    delta: string;
-    reason: string;
-    severity: 'high' | 'medium' | 'low';
-}
+import { Bill, AnomalyAnalysis } from '../../../api/services';
 
 interface BillSummaryCardProps {
     bill: Bill;
-    anomalies: Anomaly[];
+    anomalies: AnomalyAnalysis | null;
     onViewDetail: () => void;
     onViewAnomalies: () => void;
 }
@@ -46,6 +33,9 @@ export const BillSummaryCard: React.FC<BillSummaryCardProps> = ({
         }
     };
 
+    const hasAnomalies = anomalies && anomalies.anomalies && anomalies.anomalies.length > 0;
+    const highestSeverityAnomaly = hasAnomalies ? anomalies.anomalies[0] : null;
+
     return (
         <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 24, margin: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }}>
             {/* Total Amount */}
@@ -72,27 +62,48 @@ export const BillSummaryCard: React.FC<BillSummaryCardProps> = ({
                 </View>
             </View>
 
+            {/* Risk Score */}
+            {anomalies && (
+                <View style={{
+                    backgroundColor: '#f0f9ff',
+                    borderRadius: 8,
+                    padding: 16,
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: '#0ea5e9'
+                }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#0c4a6e' }}>
+                            Risk Skoru
+                        </Text>
+                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#0c4a6e' }}>
+                            {anomalies.risk_score}/100
+                        </Text>
+                    </View>
+                </View>
+            )}
+
             {/* Anomalies Alert */}
-            {anomalies.length > 0 && (
+            {hasAnomalies && highestSeverityAnomaly && (
                 <TouchableOpacity
                     style={{
                         borderRadius: 8,
                         padding: 16,
                         marginBottom: 16,
                         borderWidth: 1,
-                        borderColor: getSeverityColor(anomalies[0].severity).border,
-                        backgroundColor: getSeverityColor(anomalies[0].severity).bg
+                        borderColor: getSeverityColor(highestSeverityAnomaly.severity).border,
+                        backgroundColor: getSeverityColor(highestSeverityAnomaly.severity).bg
                     }}
                     onPress={onViewAnomalies}
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ fontSize: 18, marginRight: 8 }}>⚠️</Text>
                         <View style={{ flex: 1 }}>
-                            <Text style={{ fontWeight: '500', color: getSeverityTextColor(anomalies[0].severity) }}>
-                                {anomalies.length} anomali tespit edildi
+                            <Text style={{ fontWeight: '500', color: getSeverityTextColor(highestSeverityAnomaly.severity) }}>
+                                {anomalies.anomalies.length} anomali tespit edildi
                             </Text>
-                            <Text style={{ fontSize: 14, marginTop: 4, color: getSeverityTextColor(anomalies[0].severity) }}>
-                                {anomalies[0].reason}
+                            <Text style={{ fontSize: 14, marginTop: 4, color: getSeverityTextColor(highestSeverityAnomaly.severity) }}>
+                                {highestSeverityAnomaly.reason}
                             </Text>
                         </View>
                     </View>
