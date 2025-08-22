@@ -3,6 +3,10 @@
 
 Bu proje, React Native kullanılarak geliştirilmiş bir mobil uygulamadır. Android ve iOS platformlarında çalışacak şekilde tasarlanmıştır.
 
+> **🚀 Tamamlanmış Versiyon:** Bu projenin bitirilmiş versiyonu [feat branch'inde](https://github.com/MAZTEK-CODENIGHT/frontend/tree/feat) bulunmaktadır. **Bu versiyon [Muhammet Aydın](https://github.com/muhammetaydinn) tarafından geliştirilmiştir.**
+
+> **📹 Demo Videosu:** [Feat Branch Demo](https://drive.google.com/file/d/10k8S4ZnZXQWD_GCdyk5btEMj_g_FEzHa/view?usp=sharing)
+
 ## Proje Amacı
 
 Kullanıcıların fatura ve plan detaylarını görüntüleyebileceği, modern ve kullanıcı dostu bir arayüz sunan bir uygulama geliştirmek.
