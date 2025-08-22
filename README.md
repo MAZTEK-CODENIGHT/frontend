@@ -1,135 +1,90 @@
-# Fatura Asistanı - React Native Uygulaması
 
-## Proje Hakkında
+# CodingNightProject
 
-Fatura Asistanı, Turkcell müşterilerinin aylık faturalarını analiz eden, anomalileri tespit eden ve alternatif planları simüle eden bir mobil uygulamadır.
+Bu proje, React Native kullanılarak geliştirilmiş bir mobil uygulamadır. Android ve iOS platformlarında çalışacak şekilde tasarlanmıştır.
 
-## Özellikler
+## Proje Amacı
 
-- **Kullanıcı Seçimi**: Farklı kullanıcı profilleri arasında geçiş
-- **Dashboard**: Fatura özeti, kategori dağılımı ve hızlı işlemler
-- **Fatura Detayları**: Kalem kalem fatura analizi
-- **Anomali Tespiti**: Şüpheli ücretlerin tespiti ve risk skorlaması
-- **What-If Simülasyonu**: Alternatif plan ve paket senaryoları
-- **Checkout**: Simülasyon sonuçlarının uygulanması
+Kullanıcıların fatura ve plan detaylarını görüntüleyebileceği, modern ve kullanıcı dostu bir arayüz sunan bir uygulama geliştirmek.
 
-## Teknoloji Stack
 
-- **Frontend**: React Native 0.72.6
-- **Navigation**: React Navigation v6
-- **HTTP Client**: Axios
-- **Language**: TypeScript
-- **Platform**: iOS + Android
+## Ana Özellikler
 
-## Kurulum
+- Fatura detaylarını ve geçmişini görüntüleme
+- Faturayla ilgili detaylı görünüm
+- AI destekli fatura yorumu ve analiz önerileri
+- Plan kartları ile kullanıcıya özel bilgiler
+- Hızlı ve akıcı kullanıcı deneyimi
 
-### Gereksinimler
-
-- Node.js 16+
-- React Native CLI
-- Android Studio / Xcode
-
-### Adımlar
-
-1. Bağımlılıkları yükleyin:
-
-```bash
-npm install
-```
-
-2. iOS için (macOS gerekli):
-
-```bash
-cd ios && pod install && cd ..
-```
-
-3. Uygulamayı başlatın:
-
-```bash
-# Metro bundler
-npx react-native start
-
-# Android
-npx react-native run-android
-
-# iOS
-npx react-native run-ios
-```
-
-## Proje Yapısı
+## Klasör Yapısı
 
 ```
 src/
-├── api/
-│   └── client.ts          # API client konfigürasyonu
-├── screens/
-│   ├── UserSelection/     # Kullanıcı seçim ekranı
-│   ├── Dashboard/         # Ana dashboard
-│   │   └── components/    # Dashboard bileşenleri
-│   ├── BillDetail/        # Fatura detay ekranı
-│   ├── Anomalies/         # Anomali analiz ekranı
-│   │   └── components/    # Anomali bileşenleri
-│   ├── WhatIfSimulator/   # What-If simülasyon ekranı
-│   │   └── components/    # Simülasyon bileşenleri
-│   └── Checkout/          # Checkout ekranı
-│       └── components/    # Checkout bileşenleri
-└── App.tsx                # Ana uygulama bileşeni
+	App.tsx              # Ana uygulama dosyası
+	api/                 # API istemcisi
+	assets/              # Görseller
+	components/          # Yeniden kullanılabilir bileşenler
+	screens/             # Ekranlar (BillDetail, Home vb.)
+android/               # Android proje dosyaları
+ios/                   # iOS proje dosyaları
 ```
 
-## API Endpoints
+## Kurulum ve Çalıştırma
 
-Uygulama aşağıdaki API endpoint'lerini kullanır:
+### Gereksinimler
+- Node.js
+- npm veya yarn
+- Android Studio (Android için)
+- Xcode ve CocoaPods (iOS için)
 
-- `GET /api/users` - Kullanıcı listesi
-- `GET /api/bills/{user_id}` - Fatura bilgileri
-- `POST /api/anomalies` - Anomali tespiti
-- `POST /api/whatif` - What-If simülasyonu
-- `POST /api/checkout` - Checkout işlemi
+### Ortamı Hazırlama
+React Native ortamınızı [buradaki rehber](https://reactnative.dev/docs/environment-setup) ile kurun.
 
-## Geliştirme
-
-### Yeni Ekran Ekleme
-
-1. `src/screens/` altında yeni klasör oluşturun
-2. Ekran bileşenini oluşturun
-3. `App.tsx`'e navigation stack'e ekleyin
-4. Gerekli navigation tiplerini ekleyin
-
-### Stil Sistemi
-
-Uygulama React Native'in built-in style sistemini kullanır. Tailwind CSS benzeri utility class'lar yerine inline style objeleri kullanılmıştır.
-
-## Test
-
-```bash
-npm test
+### Bağımlılıkları Yükleme
+```sh
+npm install
+# veya
+yarn install
 ```
 
-## Build
-
-### Android APK
-
-```bash
-cd android
-./gradlew assembleRelease
+### Metro Sunucusunu Başlatma
+```sh
+npm start
+# veya
+yarn start
 ```
 
-### iOS
+### Android'de Çalıştırma
+```sh
+npm run android
+# veya
+yarn android
+```
 
-Xcode ile build edin.
+### iOS'ta Çalıştırma
+Öncelikle CocoaPods bağımlılıklarını yükleyin:
+```sh
+cd ios
+bundle install
+bundle exec pod install
+cd ..
+```
+Sonra uygulamayı başlatın:
+```sh
+npm run ios
+# veya
+yarn ios
+```
 
-## Katkıda Bulunma
+## Katkı Sağlama
 
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+Katkıda bulunmak için lütfen bir fork oluşturun ve pull request gönderin.
 
 ## Lisans
 
-MIT License
+Bu proje MIT lisansı ile lisanslanmıştır.
 
-## İletişim
+## Kaynaklar
 
-Proje ekibi - [email@example.com]
+- [React Native Belgeleri](https://reactnative.dev/docs/getting-started)
+- [CocoaPods](https://guides.cocoapods.org/using/getting-started.html)
